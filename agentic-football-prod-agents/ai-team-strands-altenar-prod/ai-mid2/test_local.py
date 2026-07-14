@@ -42,7 +42,7 @@ def test_fallback_with_ball_near_goal():
     print(f"=== FALLBACK WITH BALL NEAR GOAL ({POSITION_LABEL}) ===")
     state = json.loads(json.dumps(GAME_STATE))
     state["ball"]["possessionAgentId"] = f"agentId_{MY_PLAYER_ID}"
-    state["players"][2]["position"] = {"x": 40, "y": -5}  # MID near opp goal
+    state["players"][4]["position"] = {"x": 40, "y": -5}  # MID2 near opp goal
     cmds = fallback_commands(state, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
         print(f"  P{c['playerId']}: {c['commandType']} {c.get('parameters', {})}")
@@ -56,7 +56,7 @@ def test_fallback_with_ball_far():
     print(f"=== FALLBACK WITH BALL FAR ({POSITION_LABEL}) ===")
     state = json.loads(json.dumps(GAME_STATE))
     state["ball"]["possessionAgentId"] = f"agentId_{MY_PLAYER_ID}"
-    state["players"][2]["position"] = {"x": 0, "y": -5}
+    state["players"][4]["position"] = {"x": 0, "y": -5}
     cmds = fallback_commands(state, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
         print(f"  P{c['playerId']}: {c['commandType']} {c.get('parameters', {})}")
@@ -70,8 +70,8 @@ def test_fallback_with_ball_far():
 def test_parse():
     print("=== PARSE TESTS ===")
     tests = [
-        ('[{"commandType":"SHOOT","playerId":2,"parameters":{"aim_location":"TR","power":0.8},"duration":0}]', 1),
-        ('[{"commandType":"PASS","playerId":2,"parameters":{"target_player_id":3,"type":"THROUGH"},"duration":0}]', 1),
+        ('[{"commandType":"SHOOT","playerId":4,"parameters":{"aim_location":"TR","power":0.8},"duration":0}]', 1),
+        ('[{"commandType":"PASS","playerId":4,"parameters":{"target_player_id":3,"type":"THROUGH"},"duration":0}]', 1),
         ("invalid json", 0),
         ('[]', 0),
     ]

@@ -226,7 +226,12 @@ def _on_ball(cfg, game_state, players, team_id, my_player_id, pos, my_goal_x, op
         if abs(pos.get("x", 0) - opp_goal_x) < cfg.shoot_threshold:
             return [_cmd("SHOOT", my_player_id, team_id,
                          {"aim_location": cfg.shoot_aim, "power": cfg.shoot_power})]
-        forwards = [p for p in players if _is_my_team(p, team_id) and _player_idx(p) in (3, 4)]
+        forwards = [
+            p for p in players
+            if _is_my_team(p, team_id)
+            and _player_idx(p) in (3, 4)
+            and _player_idx(p) != my_player_id
+        ]
         if forwards:
             target = min(forwards, key=lambda p: abs(p.get("position", {}).get("x", 0) - opp_goal_x))
             return [_cmd("PASS", my_player_id, team_id,

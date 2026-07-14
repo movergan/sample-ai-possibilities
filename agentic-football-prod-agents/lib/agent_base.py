@@ -23,6 +23,7 @@ def create_invoke_handler(
     position_label: str,
     fallback_fn: Callable[[dict, int, int], list[dict]],
     fallback_cfg: FallbackConfig,
+    tactical_profile: str | None = None,
 ):
     """Create and register the @app.entrypoint invoke handler.
 
@@ -47,8 +48,14 @@ def create_invoke_handler(
             my_players = prompt_data.get("myPlayers", [my_player_id])
             effective_pid = my_players[0] if my_players else my_player_id
 
+            team_chat = game_state.get("teamChat") or prompt_data.get("teamChat")
             state_summary = summarize_state(
-                game_state, team_id, effective_pid, position_label
+                game_state,
+                team_id,
+                effective_pid,
+                position_label,
+                tactical_profile=tactical_profile,
+                team_chat=team_chat,
             )
             log.info(f"{position_label} agent invoked for team {team_id}, controlling player {effective_pid}")
 

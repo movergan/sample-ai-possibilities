@@ -2,6 +2,8 @@
 
 import math
 
+from strategy import build_altenar_tactical_context
+
 
 # ---------------------------------------------------------------------------
 # Format-agnostic helpers — handle both new (agentId/teamCode/possessionAgentId)
@@ -70,6 +72,8 @@ def summarize_state(
     team_id: int,
     my_player_id: int,
     position_label: str,
+    tactical_profile: str | None = None,
+    team_chat=None,
 ) -> str:
     """Build a concise text summary of the game state for a single-player agent."""
     ball = game_state.get("ball", {})
@@ -93,13 +97,23 @@ def summarize_state(
 
     my_goal_x, opp_goal_x = get_goal_positions(team_id)
 
-    lines = [
+    tactical_block = ""
+    if tactical_profile == "altenar":
+        chat = team_chat if team_chat is not None else game_state.get("teamChat")
+        tactical_block = build_altenar_tactical_context(
+            game_state, team_id, position_label, chat
+        )
+
+    lines = []
+    if tactical_block:
+        lines.extend([tactical_block, "=== MATCH STATE ==="])
+    lines.extend([
         f"Time: {game_time:.0f}s | Score: {score.get('home',0)}-{score.get('away',0)} | "
         f"Team: {team_id} ({'HOME' if team_id == 0 else 'AWAY'}) | PlayMode: {play_mode}",
         f"Ball: ({ball_pos.get('x',0):.1f}, {ball_pos.get('y',0):.1f}) held by {ball_status}",
         f"Your goal at x={my_goal_x:.0f} | Opponent goal at x={opp_goal_x:.0f}",
         "",
-    ]
+    ])
 
     # My player info
     if me:

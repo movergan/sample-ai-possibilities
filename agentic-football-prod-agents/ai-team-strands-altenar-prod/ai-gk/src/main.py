@@ -9,6 +9,7 @@ from _bootstrap import setup_lib_path; setup_lib_path(__file__)
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from agent_base import create_agent, create_invoke_handler
 from fallback import build_fallback, GK_CONFIG
+from strategy import TACTICAL_OBEDIENCE_PROMPT
 
 app = BedrockAgentCoreApp()
 
@@ -27,6 +28,8 @@ SYSTEM_PROMPT = f"""You are an AI soccer goalkeeper controlling ONLY player {MY_
 - Only come off your line when the ball is very close and no defender can reach it
 - Use INTERCEPT when the ball is loose near your box
 - Conserve stamina — avoid sprinting unless absolutely necessary
+
+{TACTICAL_OBEDIENCE_PROMPT}
 
 ## Priority
 1. If you have the ball → GK_DISTRIBUTE (THROW to nearest teammate)
@@ -75,6 +78,7 @@ agent = create_agent(SYSTEM_PROMPT, model_id="us.amazon.nova-micro-v1:0")
 create_invoke_handler(
     app, agent, MY_PLAYER_ID, POSITION_LABEL, fallback_commands,
     fallback_cfg=GK_CONFIG,
+    tactical_profile="altenar",
 )
 
 if __name__ == "__main__":

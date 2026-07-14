@@ -12,6 +12,7 @@ from _bootstrap import setup_lib_path; setup_lib_path(__file__)
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from agent_base import create_agent, create_invoke_handler
 from fallback import build_fallback, MID_CONFIG
+from strategy import TACTICAL_OBEDIENCE_PROMPT
 
 app = BedrockAgentCoreApp()
 
@@ -45,6 +46,8 @@ You operate in the space just behind the forward. Your primary jobs in order:
 5. Track back to support MID1 only when your team is under serious pressure
 
 You NEVER play as a defender. Leave deep defensive duties to DEF (1) and MID1 (2).
+
+{TACTICAL_OBEDIENCE_PROMPT}
 
 ## Decision Framework — evaluate in order every tick
 
@@ -111,11 +114,6 @@ If FWD (3) has the ball — support the play from just behind
 - When stamina < 25: walk to position, avoid sprints; rely on INTERCEPT rather than chasing
 - Stamina is shown as stam= in the state summary
 
-## Score & Clock Awareness
-- WINNING by 2+ goals with < 60 seconds left: slow down, prefer PASS to FWD or MID1, avoid risky shots
-- LOSING by any margin: be more aggressive — shoot from up to 38 units, press at intensity=0.95
-- Final 20 seconds while LOSING: SHOOT from any position within 45 units, maximum power
-
 ## Command Reference
 
 ONE-SHOT (execute once, duration=0):
@@ -160,6 +158,7 @@ agent = create_agent(SYSTEM_PROMPT, model_id="us.amazon.nova-pro-v1:0")
 create_invoke_handler(
     app, agent, MY_PLAYER_ID, POSITION_LABEL, fallback_commands,
     fallback_cfg=MID_CONFIG,
+    tactical_profile="altenar",
 )
 
 if __name__ == "__main__":

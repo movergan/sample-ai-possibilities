@@ -9,6 +9,7 @@ from _bootstrap import setup_lib_path; setup_lib_path(__file__)
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from agent_base import create_agent, create_invoke_handler
 from fallback import build_fallback, MID_CONFIG
+from strategy import TACTICAL_OBEDIENCE_PROMPT
 
 app = BedrockAgentCoreApp()
 
@@ -29,6 +30,8 @@ SYSTEM_PROMPT = f"""You are an AI soccer midfielder controlling ONLY player {MY_
 - SHOOT from distance if you have a clear sight of goal (within ~25 units)
 - Balance attack and defense — track back when your team loses possession
 - Manage stamina carefully; you cover the most ground
+
+{TACTICAL_OBEDIENCE_PROMPT}
 
 ## Available Commands (commandType → parameters)
 
@@ -72,6 +75,7 @@ agent = create_agent(SYSTEM_PROMPT, model_id="us.amazon.nova-pro-v1:0")
 create_invoke_handler(
     app, agent, MY_PLAYER_ID, POSITION_LABEL, fallback_commands,
     fallback_cfg=MID_CONFIG,
+    tactical_profile="altenar",
 )
 
 if __name__ == "__main__":
