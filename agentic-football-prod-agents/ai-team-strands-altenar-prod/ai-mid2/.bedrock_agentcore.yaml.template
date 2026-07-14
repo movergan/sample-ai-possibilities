@@ -1,7 +1,7 @@
-default_agent: ai_fwd2_agent
+default_agent: ai_mid_agent
 agents:
-  ai_fwd2_agent:
-    name: ai_fwd2_agent
+  ai_mid_agent:
+    name: ai_mid_agent
     entrypoint: src/main.py
     deployment_type: direct_code_deploy
     runtime_type: PYTHON_3_10

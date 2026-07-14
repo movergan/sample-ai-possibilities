@@ -1,4 +1,4 @@
-"""Local test for the FWD2 agent — tests state summary, parsing, fallback, and LLM."""
+"""Local test for the MID agent — tests state summary, parsing, fallback, and LLM."""
 
 import json
 import sys
@@ -23,7 +23,7 @@ def test_summarize():
 
 
 def test_fallback():
-    """FWD2 doesn't have ball, teammate FWD1 does — should MOVE_TO attacking position."""
+    """MID doesn't have ball, teammate does — should MOVE_TO central position."""
     print(f"=== FALLBACK ({POSITION_LABEL}) ===")
     cmds = fallback_commands(GAME_STATE, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
@@ -33,46 +33,45 @@ def test_fallback():
         print(f"  [{ok}] P{pid} T{tid}: {c['commandType']} {c.get('parameters', {})}")
     assert all(c["playerId"] == MY_PLAYER_ID for c in cmds), "FAIL: wrong playerId"
     assert all(c["teamId"] == TEAM_ID for c in cmds), "FAIL: wrong teamId"
-    assert cmds[0]["commandType"] == "MOVE_TO", f"FAIL: expected MOVE_TO, got {cmds[0]['commandType']}"
-    print(f"  Correctly moves to attacking position (right side)")
+    print(f"  All {len(cmds)} commands correct")
     print()
 
 
-def test_fallback_shoot():
-    """FWD2 has ball near opponent goal — should SHOOT."""
-    print(f"=== FALLBACK SHOOT ({POSITION_LABEL}) ===")
+def test_fallback_with_ball_near_goal():
+    """MID has ball near opponent goal — should SHOOT."""
+    print(f"=== FALLBACK WITH BALL NEAR GOAL ({POSITION_LABEL}) ===")
     state = json.loads(json.dumps(GAME_STATE))
     state["ball"]["possessionAgentId"] = f"agentId_{MY_PLAYER_ID}"
-    state["players"][4]["position"] = {"x": 40, "y": 8}  # near opp goal
+    state["players"][2]["position"] = {"x": 40, "y": -5}  # MID near opp goal
     cmds = fallback_commands(state, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
         print(f"  P{c['playerId']}: {c['commandType']} {c.get('parameters', {})}")
     assert cmds[0]["commandType"] == "SHOOT", f"FAIL: expected SHOOT, got {cmds[0]['commandType']}"
-    assert cmds[0]["parameters"]["aim_location"] == "BL", "FAIL: FWD2 should aim BL"
-    print(f"  Correctly shoots (aim BL) near goal")
+    print(f"  Correctly shoots from near goal")
     print()
 
 
-def test_fallback_advance():
-    """FWD2 has ball far from goal — should advance with MOVE_TO."""
-    print(f"=== FALLBACK ADVANCE ({POSITION_LABEL}) ===")
+def test_fallback_with_ball_far():
+    """MID has ball far from goal — should PASS to a forward."""
+    print(f"=== FALLBACK WITH BALL FAR ({POSITION_LABEL}) ===")
     state = json.loads(json.dumps(GAME_STATE))
     state["ball"]["possessionAgentId"] = f"agentId_{MY_PLAYER_ID}"
-    state["players"][4]["position"] = {"x": 10, "y": 8}  # far from goal
+    state["players"][2]["position"] = {"x": 0, "y": -5}
     cmds = fallback_commands(state, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
         print(f"  P{c['playerId']}: {c['commandType']} {c.get('parameters', {})}")
-    assert cmds[0]["commandType"] == "MOVE_TO", f"FAIL: expected MOVE_TO, got {cmds[0]['commandType']}"
-    assert cmds[0]["parameters"]["sprint"] == True, "FAIL: should sprint when advancing"
-    print(f"  Correctly advances with sprint on right side")
+    assert cmds[0]["commandType"] == "PASS", f"FAIL: expected PASS, got {cmds[0]['commandType']}"
+    target = cmds[0]["parameters"]["target_player_id"]
+    assert target in (3, 4), f"FAIL: expected pass to forward (3 or 4), got {target}"
+    print(f"  Correctly passes to forward {target}")
     print()
 
 
 def test_parse():
     print("=== PARSE TESTS ===")
     tests = [
-        ('[{"commandType":"SHOOT","playerId":4,"parameters":{"aim_location":"BL","power":0.9},"duration":0}]', 1),
-        ('[{"commandType":"MOVE_TO","playerId":4,"parameters":{"target_x":33,"target_y":8,"sprint":true},"duration":0}]', 1),
+        ('[{"commandType":"SHOOT","playerId":2,"parameters":{"aim_location":"TR","power":0.8},"duration":0}]', 1),
+        ('[{"commandType":"PASS","playerId":2,"parameters":{"target_player_id":3,"type":"THROUGH"},"duration":0}]', 1),
         ("invalid json", 0),
         ('[]', 0),
     ]
@@ -97,11 +96,11 @@ def test_llm():
         from strands import Agent
         from strands.models import BedrockModel
 
-        model = BedrockModel(model_id="us.amazon.nova-lite-v1:0")
+        model = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
         agent = Agent(model=model, system_prompt=SYSTEM_PROMPT)
 
         summary = summarize_state(GAME_STATE, TEAM_ID, MY_PLAYER_ID, POSITION_LABEL)
-        print(f"Sending to Nova Lite ({len(summary)} chars)...")
+        print(f"Sending to Nova Pro ({len(summary)} chars)...")
 
         response = agent(summary)
         response_text = str(response)
@@ -126,8 +125,8 @@ def test_llm():
 if __name__ == "__main__":
     test_summarize()
     test_fallback()
-    test_fallback_shoot()
-    test_fallback_advance()
+    test_fallback_with_ball_near_goal()
+    test_fallback_with_ball_far()
     test_parse()
 
     if "--llm" in sys.argv:

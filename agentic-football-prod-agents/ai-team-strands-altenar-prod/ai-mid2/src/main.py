@@ -1,6 +1,6 @@
 """
-AI Soccer Forward 2 Agent — Controls ONLY player 4 (Forward 2, right striker).
-Uses Strands SDK + Amazon Nova Lite.
+AI Soccer Midfielder Agent — Controls ONLY player 2 (Midfielder).
+Uses Strands SDK + Amazon Nova Pro.
 """
 
 import os, sys; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib")); sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "lib"))
@@ -8,28 +8,27 @@ from _bootstrap import setup_lib_path; setup_lib_path(__file__)
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from agent_base import create_agent, create_invoke_handler
-from fallback import build_fallback, FWD2_CONFIG
+from fallback import build_fallback, MID_CONFIG
 
 app = BedrockAgentCoreApp()
 
 # --- Position Config ---
-MY_PLAYER_ID = 4
-POSITION_LABEL = "FWD2"
+MY_PLAYER_ID = 2
+POSITION_LABEL = "MID"
 
 # --- System Prompt ---
 
-SYSTEM_PROMPT = f"""You are an AI soccer forward controlling ONLY player {MY_PLAYER_ID} (Forward 2) in a 5v5 match. You receive game state each tick and must return commands for YOUR player only.
+SYSTEM_PROMPT = f"""You are an AI soccer midfielder controlling ONLY player {MY_PLAYER_ID} (the Midfielder) in a 5v5 match. You receive game state each tick and must return commands for YOUR player only.
 
-## Your Role — Forward 2 (Right/Secondary Striker)
-- Your main job is to SCORE GOALS — be aggressive and attack-minded
-- SHOOT whenever you have the ball within shooting range (~25 units from goal)
-- Make runs toward the opponent's goal to get into scoring positions
-- MOVE_TO open space ahead of the ball to receive through passes
-- When a teammate has the ball, position yourself for a pass in the attacking third
-- PRESS_BALL high up the pitch when the opponent has the ball (high press)
-- Coordinate with Forward 1 — try to stay on the right side
-- PASS to Forward 1 or Midfielder if you're under pressure
-- Sprint when making attacking runs, conserve stamina when tracking back
+## Your Role — Midfielder
+- You are the link between defense and attack — distribute the ball wisely
+- PASS forward to forwards when they're in good positions, or back to the defender when under pressure
+- PRESS_BALL when the opponent has the ball in the middle third
+- INTERCEPT loose balls in the center of the pitch
+- MOVE_TO open space to offer passing options when a teammate has the ball
+- SHOOT from distance if you have a clear sight of goal (within ~25 units)
+- Balance attack and defense — track back when your team loses possession
+- Manage stamina carefully; you cover the most ground
 
 ## Available Commands (commandType → parameters)
 
@@ -58,21 +57,21 @@ TACTICAL:
 
 ## Response
 Return ONLY a JSON array with exactly ONE command for player {MY_PLAYER_ID}.
-Example: [{{"commandType":"SHOOT","playerId":{MY_PLAYER_ID},"parameters":{{"aim_location":"BL","power":0.85}},"duration":0}}]
+Example: [{{"commandType":"PASS","playerId":{MY_PLAYER_ID},"parameters":{{"target_player_id":3,"type":"THROUGH"}},"duration":0}}]
 Return ONLY the JSON array, no text before or after."""
 
 
 # --- Fallback ---
 
-fallback_commands = build_fallback(FWD2_CONFIG)
+fallback_commands = build_fallback(MID_CONFIG)
 
 
 # --- Wire it up ---
 
-agent = create_agent(SYSTEM_PROMPT, model_id="us.amazon.nova-lite-v1:0")
+agent = create_agent(SYSTEM_PROMPT, model_id="us.amazon.nova-pro-v1:0")
 create_invoke_handler(
     app, agent, MY_PLAYER_ID, POSITION_LABEL, fallback_commands,
-    fallback_cfg=FWD2_CONFIG,
+    fallback_cfg=MID_CONFIG,
 )
 
 if __name__ == "__main__":
