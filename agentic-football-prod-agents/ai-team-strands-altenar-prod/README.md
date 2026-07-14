@@ -1,22 +1,27 @@
-# AI Team (Strands) — Per-Position Soccer Agents
+# AI Team (Strands) — Altenar Production
 
 Five AI agents that each control a single player in a 5v5 soccer match, built with
 [Strands Agents SDK](https://github.com/strands-agents/sdk-python) and deployed to
 [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/).
 
+## Documentation
+
+- **[AGENTIC_SYSTEM.md](./AGENTIC_SYSTEM.md)** — How to build an agentic system for football: foundation models, prompts, state, orchestration, guardrails, observability, and how each maps to this team's code.
+
 ## Architecture
 
 ```
-agents/
-├── lib/            # Shared library (single source of truth, used by all teams)
-└── ai-team-strands-balanced/
-    ├── ai-gk/          # Goalkeeper  (player 0) — Nova Micro
-    ├── ai-def/         # Defender    (player 1) — Nova Lite
-    ├── ai-mid/         # Midfielder  (player 2) — Nova Pro
-    ├── ai-fwd1/        # Forward 1   (player 3) — Nova Micro
-    ├── ai-fwd2/        # Forward 2   (player 4) — Nova Lite
-    ├── deploy-all.sh           # Build + deploy script (macOS/Linux)
-    ├── deploy-all-windows.ps1  # Build + deploy script (Windows)
+agentic-football-prod-agents/
+├── lib/                          # Shared library (single source of truth)
+└── ai-team-strands-altenar-prod/
+    ├── ai-gk/                    # Goalkeeper  (player 0)
+    ├── ai-def/                   # Defender    (player 1)
+    ├── ai-mid1/                  # Midfielder  (player 2)
+    ├── ai-fwd/                   # Forward     (player 3)
+    ├── ai-mid2/                  # Midfielder  (player 4)
+    ├── deploy-all.sh             # Build + deploy script (macOS/Linux)
+    ├── deploy-all-windows.ps1    # Build + deploy script (Windows)
+    ├── AGENTIC_SYSTEM.md         # Agentic system design guide
     └── README.md
 ```
 
@@ -149,19 +154,19 @@ agents:
 Add your agent to the `ALL_AGENTS` array:
 
 ```bash
-ALL_AGENTS=("ai-gk" "ai-def" "ai-mid" "ai-fwd1" "ai-fwd2" "ai-myagent")
+ALL_AGENTS=("ai-gk" "ai-def" "ai-mid1" "ai-mid2" "ai-fwd" "ai-myagent")
 ```
 
 
 ## Player IDs and Positions
 
-| Player ID | Position   | Default Model |
-|-----------|------------|---------------|
-| 0         | Goalkeeper | Nova Micro    |
-| 1         | Defender   | Nova Lite     |
-| 2         | Midfielder | Nova Pro      |
-| 3         | Forward 1  | Nova Micro    |
-| 4         | Forward 2  | Nova Lite     |
+| Agent     | Player ID | Position   | Directory |
+|-----------|-----------|------------|-----------|
+| ai-gk     | 0         | Goalkeeper | `ai-gk/`  |
+| ai-def    | 1         | Defender   | `ai-def/` |
+| ai-mid1   | 2         | Midfielder | `ai-mid1/`|
+| ai-fwd    | 3         | Forward    | `ai-fwd/` |
+| ai-mid2   | 4         | Midfielder | `ai-mid2/`|
 
 ## Available Commands
 
