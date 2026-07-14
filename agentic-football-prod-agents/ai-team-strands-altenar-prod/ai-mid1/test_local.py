@@ -52,18 +52,17 @@ def test_fallback_with_ball_near_goal():
 
 
 def test_fallback_with_ball_far():
-    """MID has ball far from goal — should PASS to a forward."""
+    """MID1 has ball far from goal — should advance toward goal beside FWD."""
     print(f"=== FALLBACK WITH BALL FAR ({POSITION_LABEL}) ===")
     state = json.loads(json.dumps(GAME_STATE))
     state["ball"]["possessionAgentId"] = f"agentId_{MY_PLAYER_ID}"
-    state["players"][2]["position"] = {"x": 0, "y": -5}
+    state["players"][2]["position"] = {"x": 0, "y": -8}
     cmds = fallback_commands(state, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
         print(f"  P{c['playerId']}: {c['commandType']} {c.get('parameters', {})}")
-    assert cmds[0]["commandType"] == "PASS", f"FAIL: expected PASS, got {cmds[0]['commandType']}"
-    target = cmds[0]["parameters"]["target_player_id"]
-    assert target in (3, 4), f"FAIL: expected pass to forward (3 or 4), got {target}"
-    print(f"  Correctly passes to forward {target}")
+    assert cmds[0]["commandType"] == "MOVE_TO", f"FAIL: expected MOVE_TO, got {cmds[0]['commandType']}"
+    assert cmds[0]["parameters"]["sprint"] is True
+    print(f"  Correctly advances toward goal")
     print()
 
 

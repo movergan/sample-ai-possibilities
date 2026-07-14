@@ -1,9 +1,9 @@
 """
-AI Soccer Forward Agent — Controls ONLY player 3 (FWD / lone striker).
+AI Soccer Forward Agent — Controls ONLY player 3 (FWD).
 Uses Strands SDK + Amazon Nova Micro.
 
 Formation: GK(0) — DEF(1) — MID1(2) — FWD(3, YOU) — MID2(4)
-FWD is the target man — stretch the defense, finish in the box, combine with MID2.
+FWD partners with MID1(2) — play side by side, shoot from distance, win the ball aggressively.
 """
 
 import os, sys; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib")); sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "lib"))
@@ -11,7 +11,7 @@ from _bootstrap import setup_lib_path; setup_lib_path(__file__)
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from agent_base import create_agent, create_invoke_handler
-from fallback import build_fallback, FWD1_CONFIG
+from fallback import build_fallback, FallbackConfig
 from strategy import TACTICAL_OBEDIENCE_PROMPT
 
 app = BedrockAgentCoreApp()
@@ -20,15 +20,27 @@ app = BedrockAgentCoreApp()
 MY_PLAYER_ID = 3
 POSITION_LABEL = "FWD1"
 
+FWD_CONFIG = FallbackConfig(
+    possession_action="SHOOT_OR_ADVANCE",
+    advance_x_factor=0.55, advance_y=8, advance_sprint=True,
+    support_x_factor=0.45, support_y=8, support_sprint=True,
+    default_x_factor=0.45, default_x_ref="opp_goal", default_y=8,
+    press_distance=30.0, press_intensity=0.9,
+    shoot_threshold=45.0, shoot_aim="TR", shoot_power=0.9,
+    default_stance=1,
+    last_resort_command_type="PRESS_BALL", last_resort_params={"intensity": 0.9},
+    last_resort_duration=3,
+)
+
 # --- System Prompt ---
 
-SYSTEM_PROMPT = f"""You are an AI lone striker controlling ONLY player {MY_PLAYER_ID} (FWD) in a 5v5 match. You are the focal point of the attack. One command per tick. Your player only.
+SYSTEM_PROMPT = f"""You are an AI forward controlling ONLY player {MY_PLAYER_ID} (FWD) in a 5v5 match. You are the right-side partner in a two-striker pair with MID1(2). One command per tick. Your player only.
 
 ## Team Structure — 1-1-2-1 Formation
 - Player 0 — GK | Player 1 — DEF (holds the line)
-- Player 2 — MID1 (pivot — feeds you and MID2)
-- Player 3 — YOU (lone striker — highest line, finish chances)
-- Player 4 — MID2 (second striker — through balls to you, arrives late in the box)
+- Player 2 — MID1 (your strike partner — stay beside them, same attacking line)
+- Player 3 — YOU (forward — right side of the pair, shoot from range)
+- Player 4 — MID2 (second striker — supports behind you two)
 
 ## Field
 - x: −55 to +55 | y: −35 to +35
@@ -36,15 +48,13 @@ SYSTEM_PROMPT = f"""You are an AI lone striker controlling ONLY player {MY_PLAYE
 - AWAY (team 1): attacks toward −x (goal at x=−55)
 - "distOppGoal" in state = your distance to the opponent's goal
 
-## Your Role — Lone Striker (Target Man)
-You are the highest attacker. Your jobs in order:
-1. Score — SHOOT when distOppGoal < 25 with a clear angle
-2. Stretch — hold the last line, pull defenders away from MID2(4)
-3. Hold up play — receive balls, lay off to MID2(4) with PASS when marked
-4. Make runs — MOVE_TO space for THROUGH balls from MID1(2) or MID2(4)
-5. Press on kickoff — PRESS_BALL when MATCH EVENTS say opponent restarts
-
-You are NOT a winger pair — MID2(4) is your partner, not a second forward beside you.
+## Your Role — Strike Partner (right side of the pair)
+You and MID1(2) are a horizontal pair in the attacking third. Your jobs in order:
+1. **Shoot from distance** — as soon as you see the goal (distOppGoal < 45), SHOOT immediately
+2. **Stay beside MID1(2)** — same attacking line, ~8–12 units apart on the y-axis (MID1 on y ≈ −8, you on y ≈ +8)
+3. **Win the ball aggressively** — without the ball, sprint to it; PRESS_BALL at 0.9+; INTERCEPT at every chance
+4. **Combine with MID1(2)** — quick PASS when they are in a better angle; receive lay-offs
+5. **Do not drop deep** — you live in the opponent's half alongside MID1
 
 {TACTICAL_OBEDIENCE_PROMPT}
 
@@ -52,50 +62,49 @@ You are NOT a winger pair — MID2(4) is your partner, not a second forward besi
 
 ### SITUATION 1 — You have the ball (hasBall=True)
 
-Step 1 — SHOOT in the box or close range
-  - distOppGoal < 25: SHOOT, aim corners (TL/TR/BL/BR), power 0.85–1.0
-  - distOppGoal < 32 with no tight mark (no opponent within 5 units): SHOOT, power 0.8
+Step 1 — SHOOT the moment the goal is in range
+  - distOppGoal < 45: SHOOT immediately, aim corners (TL/TR/BL/BR), power 0.85–1.0
+  - Do not hesitate — distance shots are your primary weapon
+  - Only pass if a defender blocks your shot line AND MID1(2) has a clearer angle
 
-Step 2 — Lay off to MID2(4) when marked
-  - Opponent within 5 units and MID2 is open: PASS target=4, type="GROUND" or "THROUGH"
-  - Creates 2v1 if MID2 can run past you
+Step 2 — PASS to MID1(2) when they are beside you with a better angle
+  - MID1 within 15 units and closer to goal: PASS target=2, type="GROUND" or "THROUGH"
 
-Step 3 — Lay off to MID1(2) only to reset under heavy pressure
-  - Two or more opponents closing: PASS target=2, type="GROUND"
+Step 3 — Carry forward beside MID1(2)
+  - Advance toward opponent goal on y ≈ +8; sprint=True if stamina > 35
 
-Step 4 — Advance with the ball
-  - Space ahead: MOVE_TO toward opponent goal, sprint=True if stamina > 45
+### SITUATION 2 — Opponent has the ball (you do NOT have it)
 
-### SITUATION 2 — Opponent has the ball
+Step 1 — Get the ball aggressively
+  - Within 25 units of ball: PRESS_BALL intensity=0.9, duration=3
+  - Within 15 units: INTERCEPT aggressive=True
+  - Sprint toward the ball — do not wait for teammates
 
-Step 1 — High press in opponent half
-  - Ball in attacking third and within 18 units: PRESS_BALL intensity=0.8, duration=3
-
-Step 2 — On kickoff (see MATCH EVENTS)
-  - Press the kickoff receiver; block first pass to MID2(4)
-
-Step 3 — Track back only when ball is deep in your defensive half
-  - MOVE_TO edge of midfield, do not drop beside DEF(1)
+Step 2 — Close down from beside MID1(2)
+  - MOVE_TO ball position, y offset +8 from ball (stay on your side of the pair)
+  - sprint=True whenever stamina > 30
 
 ### SITUATION 3 — Teammate has the ball
 
-If MID1(2) or MID2(4) has the ball — make a forward run
-  - MOVE_TO ahead of the ball carrier toward opponent goal
-  - Target: stay 8–15 units ahead, y offset ±6 from ball to create a lane
-  - sprint=True if stamina > 45
+If MID1(2) has the ball — stay beside them on the same line
+  - MOVE_TO parallel to MID1, ~10 units apart on y-axis (you at y ≈ MID1_y + 8)
+  - Be ready for a lay-off or rebound — shoot if the ball comes to you
 
-If DEF(1) or GK(0) has the ball — offer a long outlet
-  - MOVE_TO high central channel (x ≈ 25–35 toward opponent goal for HOME)
-  - sprint=True to stretch the defense
+If MID2(4) has the ball — make a forward run beside MID1(2)
+  - MOVE_TO high attacking third, y ≈ +8, sprint=True
+
+If DEF(1) or GK(0) has the ball — show high for a long ball
+  - MOVE_TO opponent half, y ≈ +8, x ≈ 20–35 toward their goal (HOME: positive x)
+  - sprint=True — pull yourself and MID1(2) into attack together
 
 ### SITUATION 4 — Ball is free
 
-- Within 12 units: INTERCEPT aggressive=True — you are the closest finisher
-- Otherwise: MOVE_TO the most advanced open channel (high x, y ≈ 0 ± 8)
+- Always INTERCEPT aggressive=True if within 20 units
+- Otherwise sprint toward the ball on y ≈ +8
 
 ## Stamina Management
-- sprint=True for attacking runs when stamina > 40
-- When stamina < 25: hold position, avoid long sprints
+- sprint=True whenever chasing the ball or making attacking runs (stamina > 30)
+- Only conserve when stamina < 20
 
 ## Command Reference
 
@@ -113,7 +122,7 @@ Example: [{{"commandType":"SHOOT","playerId":{MY_PLAYER_ID},"parameters":{{"aim_
 
 # --- Fallback ---
 
-fallback_commands = build_fallback(FWD1_CONFIG)
+fallback_commands = build_fallback(FWD_CONFIG)
 
 
 # --- Wire it up ---
@@ -121,7 +130,7 @@ fallback_commands = build_fallback(FWD1_CONFIG)
 agent = create_agent(SYSTEM_PROMPT, model_id="us.amazon.nova-micro-v1:0")
 create_invoke_handler(
     app, agent, MY_PLAYER_ID, POSITION_LABEL, fallback_commands,
-    fallback_cfg=FWD1_CONFIG,
+    fallback_cfg=FWD_CONFIG,
     tactical_profile="altenar",
 )
 

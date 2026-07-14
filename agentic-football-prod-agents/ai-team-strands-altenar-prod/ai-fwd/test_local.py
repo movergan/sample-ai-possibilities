@@ -23,7 +23,7 @@ def test_summarize():
 
 
 def test_fallback():
-    """FWD1 has the ball at x=14 — far from goal, should MOVE_TO toward goal."""
+    """FWD has the ball in shooting range — should SHOOT from distance."""
     print(f"=== FALLBACK ({POSITION_LABEL}, has ball) ===")
     cmds = fallback_commands(GAME_STATE, TEAM_ID, MY_PLAYER_ID)
     for c in cmds:
@@ -33,8 +33,8 @@ def test_fallback():
         print(f"  [{ok}] P{pid} T{tid}: {c['commandType']} {c.get('parameters', {})}")
     assert all(c["playerId"] == MY_PLAYER_ID for c in cmds), "FAIL: wrong playerId"
     assert all(c["teamId"] == TEAM_ID for c in cmds), "FAIL: wrong teamId"
-    assert cmds[0]["commandType"] == "MOVE_TO", f"FAIL: expected MOVE_TO, got {cmds[0]['commandType']}"
-    print(f"  Correctly advances toward goal")
+    assert cmds[0]["commandType"] == "SHOOT", f"FAIL: expected SHOOT, got {cmds[0]['commandType']}"
+    print(f"  Correctly shoots from distance")
     print()
 
 

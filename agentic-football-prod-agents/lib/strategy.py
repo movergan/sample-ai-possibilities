@@ -36,10 +36,10 @@ _POSITION_GUIDANCE: dict[str, dict[str, str]] = {
         STRATEGY_DEFENCE: "Deep line; tight MARK; clear danger; do not push into opponent's half.",
     },
     "MID1": {
-        STRATEGY_MID_AGGRESSIVE: "Hold central midfield (player 2); recycle possession; PASS to MID2(4) or FWD(3); PRESS in the middle third; shield DEF(1).",
-        STRATEGY_ATTACK: "Push slightly higher; quick outlet passes to MID2(4) and FWD(3); support buildup — leave finishing to MID2 and FWD.",
-        STRATEGY_BALANCED: "Control tempo from deep; safe passes between DEF(1) and attack; do not overcommit forward.",
-        STRATEGY_DEFENCE: "Anchor deep; break up play; track back before pressing; PASS back to DEF(1) when under pressure.",
+        STRATEGY_MID_AGGRESSIVE: "Partner with FWD(3) side by side (y ≈ −8); SHOOT from distance (distOppGoal < 45); PRESS_BALL at 0.9+ when you don't have the ball.",
+        STRATEGY_ATTACK: "Stay beside FWD(3); shoot at every sight of goal; sprint to win loose balls; combine with quick passes between you two.",
+        STRATEGY_BALANCED: "Hold the pair shape with FWD(3); shoot from ~40 units; press aggressively only in the opponent's half.",
+        STRATEGY_DEFENCE: "Drop one line only — still beside FWD(3); shoot on counter when distOppGoal < 40; press the ball carrier hard.",
     },
     "MID2": {
         STRATEGY_MID_AGGRESSIVE: "Play as second striker (player 4) behind FWD(3); THROUGH balls to FWD; shoot from ~28 units; high PRESS in opponent half.",
@@ -54,10 +54,10 @@ _POSITION_GUIDANCE: dict[str, dict[str, str]] = {
         STRATEGY_DEFENCE: "Sit deeper; shield the back line; prefer safe passes; track back before pressing.",
     },
     "FWD1": {
-        STRATEGY_MID_AGGRESSIVE: "Attack the goal; SHOOT in range; high press; make runs into space.",
-        STRATEGY_ATTACK: "Maximum aggression; shoot from up to 35 units; sprint into channels; press at 0.9+ intensity.",
-        STRATEGY_BALANCED: "Hold attacking shape; combine with midfield; shoot only on clear chances.",
-        STRATEGY_DEFENCE: "Drop slightly deeper; hold ball when leading; press only in your defensive half.",
+        STRATEGY_MID_AGGRESSIVE: "Partner with MID1(2) side by side (y ≈ +8); SHOOT from distance (distOppGoal < 45); PRESS_BALL at 0.9+ when you don't have the ball.",
+        STRATEGY_ATTACK: "Stay beside MID1(2); shoot at every sight of goal; sprint to win loose balls; combine with quick passes between you two.",
+        STRATEGY_BALANCED: "Hold the pair shape with MID1(2); shoot from ~40 units; press aggressively only in the opponent's half.",
+        STRATEGY_DEFENCE: "Drop one line only — still beside MID1(2); shoot on counter when distOppGoal < 40; press the ball carrier hard.",
     },
 }
 
@@ -68,33 +68,33 @@ _last_score_by_team: dict[int, tuple[int, int]] = {}
 _KICKOFF_ATTACK_GUIDANCE: dict[str, str] = {
     "GK": "Stay on line; be ready to distribute immediately if you receive the ball.",
     "DEF": "Hold a compact line 10–15 units ahead of goal; offer a safe PASS outlet to MID1(2).",
-    "MID1": "Stand central near the ball; offer the first PASS outlet — recycle to MID2(4) or FWD(3) quickly.",
+    "MID1": "Stand beside FWD(3) on the same line (y ≈ −8); be ready to shoot from distance after the kickoff.",
     "MID2": "Push 10–15 units ahead of the ball; be the primary forward option after kickoff.",
-    "FWD1": "Stretch high and wide; hold the last line — ready for a THROUGH ball from MID1(2) or MID2(4).",
+    "FWD1": "Stand beside MID1(2) on the same line (y ≈ +8); shoot from distance as soon as the goal is visible.",
 }
 
 _KICKOFF_DEFEND_GUIDANCE: dict[str, str] = {
     "GK": "Hold the line; track the ball laterally; do not rush out.",
     "DEF": "Stay compact between ball and goal; tight MARK on the kickoff receiver.",
-    "MID1": "PRESS the kickoff receiver at intensity 0.8; cut the pass to MID2(4).",
+    "MID1": "PRESS the kickoff receiver at intensity 0.9; win the ball beside FWD(3).",
     "MID2": "PRESS_BALL at 0.85 on the ball carrier; win it high if possible.",
-    "FWD1": "Press the deepest outlet (block pass to FWD); PRESS_BALL intensity 0.75.",
+    "FWD1": "PRESS beside MID1(2); PRESS_BALL intensity 0.9 — get the ball aggressively.",
 }
 
 _GOAL_EVENT_GUIDANCE: dict[str, dict[str, str]] = {
     "TEAM_SCORED": {
         "GK": "We scored — expect kickoff soon; stay composed, quick distribution when play resumes.",
         "DEF": "We scored — reset shape immediately; compact line before kickoff.",
-        "MID1": "We scored — take a breath, then hold central shape for the restart.",
+        "MID1": "We scored — stay beside FWD(3); be ready to shoot from distance on the restart.",
         "MID2": "We scored — use the reset window to push high before opponents organize.",
-        "FWD1": "We scored — stay high for the restart; be ready to press their kickoff.",
+        "FWD1": "We scored — stay beside MID1(2); press their kickoff and shoot on turnovers.",
     },
     "OPP_SCORED": {
         "GK": "We conceded — refocus; expect kickoff from center; stay between ball and goal.",
         "DEF": "We conceded — tighten marking; do not chase out of shape on the restart.",
-        "MID1": "We conceded — sit deeper; shield DEF(1); win the ball back with discipline.",
+        "MID1": "We conceded — press aggressively beside FWD(3); win the ball back immediately.",
         "MID2": "We conceded — press aggressively on their kickoff; force a mistake.",
-        "FWD1": "We conceded — press their kickoff receiver; block the first forward pass.",
+        "FWD1": "We conceded — press beside MID1(2) at 0.9+; shoot on any turnover in range.",
     },
 }
 
