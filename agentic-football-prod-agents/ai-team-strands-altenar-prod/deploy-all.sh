@@ -30,7 +30,7 @@ BUILD_DIR="$SCRIPT_DIR/_build"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION
 
-ALL_AGENTS=("ai-gk" "ai-def" "ai-mid" "ai-fwd1" "ai-fwd2")
+ALL_AGENTS=("ai-gk" "ai-def" "ai-mid1" "ai-mid2" "ai-fwd")
 
 # If an agent name was passed as argument, deploy only that one
 if [ -n "$1" ]; then
