@@ -15,7 +15,7 @@ app = BedrockAgentCoreApp()
 
 # --- Position Config ---
 MY_PLAYER_ID = 2
-POSITION_LABEL = "MID"
+POSITION_LABEL = "MID1"
 
 # --- System Prompt ---
 

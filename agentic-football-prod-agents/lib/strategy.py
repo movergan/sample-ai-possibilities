@@ -34,6 +34,18 @@ _POSITION_GUIDANCE: dict[str, dict[str, str]] = {
         STRATEGY_BALANCED: "Hold defensive shape; zonal coverage; recycle possession with simple passes.",
         STRATEGY_DEFENCE: "Deep line; tight MARK; clear danger; do not push into opponent's half.",
     },
+    "MID1": {
+        STRATEGY_MID_AGGRESSIVE: "Hold central midfield (player 2); recycle possession; PASS to MID2(4) or FWD(3); PRESS in the middle third; shield DEF(1).",
+        STRATEGY_ATTACK: "Push slightly higher; quick outlet passes to MID2(4) and FWD(3); support buildup — leave finishing to MID2 and FWD.",
+        STRATEGY_BALANCED: "Control tempo from deep; safe passes between DEF(1) and attack; do not overcommit forward.",
+        STRATEGY_DEFENCE: "Anchor deep; break up play; track back before pressing; PASS back to DEF(1) when under pressure.",
+    },
+    "MID2": {
+        STRATEGY_MID_AGGRESSIVE: "Play as second striker (player 4) behind FWD(3); THROUGH balls to FWD; shoot from ~28 units; high PRESS in opponent half.",
+        STRATEGY_ATTACK: "Maximum creativity; shoot often; sprint into channels; combine with FWD(3) for 2v1; PRESS_BALL at 0.85+.",
+        STRATEGY_BALANCED: "Support FWD(3) with forward runs; selective through balls; press only in the attacking third.",
+        STRATEGY_DEFENCE: "Drop to the midfield line alongside MID1(2); retain possession; press only when the ball is nearby.",
+    },
     "MID": {
         STRATEGY_MID_AGGRESSIVE: "Link defense and attack; PRESS in midfield; THROUGH passes to forwards; shoot from ~25 units.",
         STRATEGY_ATTACK: "Push into attacking third; aggressive THROUGH passes and shots; high PRESS_BALL intensity (0.85+).",
@@ -131,7 +143,7 @@ def build_altenar_tactical_context(
     strategy = resolve_strategy(goal_diff)
     coach_messages = extract_coach_messages(team_chat)
 
-    pos_key = position_label if position_label in _POSITION_GUIDANCE else "MID"
+    pos_key = position_label if position_label in _POSITION_GUIDANCE else "MID1"
     position_guidance = _POSITION_GUIDANCE[pos_key].get(
         strategy, _POSITION_GUIDANCE[pos_key][STRATEGY_MID_AGGRESSIVE]
     )
